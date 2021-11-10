@@ -42,17 +42,26 @@ fun show(
 class WilhelmScreamListener : DocumentListener {
     override fun documentChanged(event: DocumentEvent) {
         super.documentChanged(event)
+
         if (event.isWholeTextReplaced) return
-        val file = FileDocumentManager.getInstance()
-            .getFile(event.document)
+
+        val file = FileDocumentManager.getInstance().getFile(event.document)
         if (file?.extension?.matches(ktFileExtensionRegex) != true) return
+
         if (event.newFragment.contains("!!") ||
-            event.withPreviousChar() == "!!") {
+            event.withPreviousChars(1) == "!!") {
+            playSound(WILHELM_SCREAM_PATH)
+        }
+
+        if (event.newFragment.contains("lateinit") ||
+            event.withPreviousChars(7).contains("lateinit")) {
             playSound(WILHELM_SCREAM_PATH)
         }
     }
 
-    private fun DocumentEvent.withPreviousChar(): String = document.getText(TextRange((offset-1).coerceAtLeast(0), offset+1))
+    private fun DocumentEvent.withPreviousChars(number: Int): String =
+        document.getText(TextRange((offset - number).coerceAtLeast(0), offset + number))
+
 
     @Synchronized
     fun playSound(url: String) = Thread {
